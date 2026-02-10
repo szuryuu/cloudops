@@ -26,7 +26,7 @@ variable "service_cidr" {
   type = string
 }
 
-# Should in range service cidr
+## Should in range service cidr
 variable "dns_service_ip" {
   type = string
 }
