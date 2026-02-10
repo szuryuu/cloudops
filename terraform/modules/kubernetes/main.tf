@@ -5,9 +5,10 @@ resource "azurerm_kubernetes_cluster" "main" {
   dns_prefix          = "acctestagent1"
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-    vm_size    = "Standard_B1s"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_B1s"
+    vnet_subnet_id = var.subnet_id
   }
 
   identity {
@@ -18,12 +19,33 @@ resource "azurerm_kubernetes_cluster" "main" {
     admin_username = "adminuser"
 
     ssh_key {
-      
+      key_data = var.ssh_key
     }
   }
 
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+    service_cidr      = var.service_cidr
+    dns_service_ip    = var.dns_service_ip
+
+    docker_bridge_cidr = var.docker_bridge_cidr
+  }
+
   tags = {
-    Project_Name = var.project_name
-    Environment  = var.environment
+    project_name = var.project_name
+    environment  = var.environment
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "node_pool" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
+  vm_size               = "Standard_B1s"
+  node_count            = 2
+
+  tags = {
+    project_name = var.project_name
+    environment  = var.environment
   }
 }
