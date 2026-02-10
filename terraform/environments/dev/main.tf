@@ -36,7 +36,7 @@ module "k8s" {
   resource_group_location = data.azurerm_resource_group.main.location
 
   # Node pool
-  subnet_id = module.subnet_id
+  subnet_id = module.networking.subnet_id
 
   # Linux profile
   ssh_key = data.azurerm_key_vault_secret.vault_secret.value
@@ -44,7 +44,6 @@ module "k8s" {
   # Network profile
   service_cidr       = var.service_cidr
   dns_service_ip     = var.dns_service_ip
-  docker_bridge_cidr = var.docker_bridge_cidr
 
   # Tags
   project_name = var.project_name

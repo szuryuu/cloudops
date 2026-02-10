@@ -31,10 +31,6 @@ variable "dns_service_ip" {
   type = string
 }
 
-variable "docker_bridge_cidr" {
-  type = string
-}
-
 # Tags
 
 variable "environment" {

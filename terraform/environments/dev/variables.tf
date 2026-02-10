@@ -16,7 +16,7 @@ variable "key_vault_name" {
 
 ## Module network
 variable "address_space" {
-  type = [string]
+  type = string
 }
 
 variable "address_prefix" {
@@ -29,10 +29,6 @@ variable "service_cidr" {
 }
 
 variable "dns_service_ip" {
-  type = string
-}
-
-variable "docker_bridge_cidr" {
   type = string
 }
 
