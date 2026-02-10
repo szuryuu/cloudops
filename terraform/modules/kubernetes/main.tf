@@ -36,14 +36,14 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 }
 
-resource "azurerm_kubernetes_cluster_node_pool" "node_pool" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
-  vm_size               = "Standard_B1s"
-  node_count            = 2
-
-  tags = {
-    project_name = var.project_name
-    environment  = var.environment
-  }
-}
+# resource "azurerm_kubernetes_cluster_node_pool" "node_pool" {
+#   name                  = "internal"
+#   kubernetes_cluster_id = azurerm_kubernetes_cluster.main.id
+#   vm_size               = "Standard_B2s"
+#   node_count            = 2
+#
+#   tags = {
+#     project_name = var.project_name
+#     environment  = var.environment
+#   }
+# }
