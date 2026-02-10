@@ -1,0 +1,13 @@
+services:
+  web:
+    build: 
+      context: ./backend/
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    ports:
+      - "8000:5000"
+
+  redis:
+    image: "redis:alpine"
