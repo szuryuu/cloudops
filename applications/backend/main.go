@@ -2,12 +2,21 @@ package main
 
 import (
 		"github.com/gin-gonic/gin"
+		"github.com/gin-contrib/cors"
 		"cloudops/backend/controllers"
 		"cloudops/backend/models"
 )
 
 func main() {
 		router := gin.Default()
+
+		router.Use(cors.New(cors.Config{
+			AllowAllOrigins:  true,
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+		}))
 
 		models.ConnectDatabase()
 
@@ -30,5 +39,4 @@ func main() {
 		router.DELETE("/users/:id", controllers.DeleteUser)
 
 		router.Run(":5000")
-
 }
