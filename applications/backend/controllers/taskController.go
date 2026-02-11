@@ -14,6 +14,11 @@ type ValidateTaskInput struct {
 	Status string `json:"status" binding:"required"` 
 }
 
+type UpdateTaskInput struct {
+    Content string `json:"content"`
+    Status  string `json:"status"`
+}
+
 func FindTasks(c *gin.Context) {
 	var tasks []models.Task
 	models.DB.Find(&tasks)
@@ -73,7 +78,7 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	var input ValidateTaskInput
+	var input UpdateTaskInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
