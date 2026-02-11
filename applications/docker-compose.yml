@@ -4,8 +4,16 @@ services:
       context: ./backend/
       dockerfile: Dockerfile
     working_dir: /app
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydatabase
+      - DB_PORT=5432
+      - DB_HOST=db
     ports:
       - "8000:5000"
+    depends_on:
+      - db
 
   db:
     image: postgres:18-alpine

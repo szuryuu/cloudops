@@ -1,11 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Hello, World!</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudOps Task Manager</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --bg: #f8fafc;
+            --card: #ffffff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+        }
+        .container {
+            background: var(--card);
+            width: 400px;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        h1 { text-align: center; color: #1e293b; margin-bottom: 1.5rem; }
+        
+        .input-group { display: flex; gap: 10px; margin-bottom: 2rem; }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+        }
+        button.add-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button.add-btn:hover { opacity: 0.9; }
+
+        ul { list-style: none; padding: 0; }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s;
+        }
+        li:last-child { border-bottom: none; }
+        li.completed span { text-decoration: line-through; color: #94a3b8; }
+        
+        .actions { display: flex; gap: 8px; }
+        button.icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .check-btn { color: var(--success); }
+        .delete-btn { color: var(--danger); }
+        button.icon-btn:hover { background-color: #f1f5f9; }
+    </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <p>This is my first HTML page with "Hello, World!".</p>
+
+<div class="container">
+    <h1>🚀 DevOps Tasks</h1>
+    
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="What needs to be done?">
+        <button class="add-btn" onclick="createTask()">Add</button>
+    </div>
+
+    <ul id="taskList">
+        <li style="text-align: center; color: #94a3b8;">Loading tasks...</li>
+    </ul>
+</div>
+
+<script>
+    // ⚠️ CONFIG: Pastikan port ini sesuai dengan docker-compose kamu
+    // Kalau kamu mapping "8000:8080", maka akses dari browser adalah localhost:8000
+    const API_URL = "http://localhost:8000"; 
+
+    // --- 1. READ (Load Data saat halaman dibuka) ---
+    async function loadTasks() {
+        try {
+            // TUGASMU: Ganti baris ini dengan fetch ke backend
+            // const response = await fetch(`${API_URL}/tasks`);
+            // const tasks = await response.json();
+            
+            // --- MOCK DATA (HAPUS INI NANTI) ---
+            console.log("Fetching data from Backend...");
+            const tasks = [
+                { id: 1, content: "Mock Data: Connect DB", status: "pending" },
+                { id: 2, content: "Mock Data: Write Go Code", status: "done" }
+            ];
+            // -----------------------------------
+
+            renderList(tasks);
+        } catch (error) {
+            console.error("Error loading tasks:", error);
+            document.getElementById('taskList').innerHTML = `<li style="color:red">Error connecting to Backend!</li>`;
+        }
+    }
+
+    // --- 2. CREATE (Tambah Data) ---
+    async function createTask() {
+        const input = document.getElementById('taskInput');
+        const content = input.value;
+        if (!content) return;
+
+        try {
+            // TUGASMU: Kirim method POST ke backend
+            // Body harus JSON: { "content": content }
+            console.log("Creating task:", content);
+
+            input.value = ""; // Clear input
+            loadTasks(); // Reload list
+        } catch (error) {
+            console.error("Error creating task:", error);
+        }
+    }
+
+    // --- 3. UPDATE (Ubah Status Selesai/Belum) ---
+    async function updateTask(id, currentStatus) {
+        try {
+            const newStatus = currentStatus === 'done' ? 'pending' : 'done';
+            
+            // TUGASMU: Kirim method PUT/PATCH ke backend
+            // URL: `${API_URL}/tasks/${id}`
+            console.log(`Updating task ${id} to ${newStatus}`);
+
+            loadTasks();
+        } catch (error) {
+            console.error("Error updating task:", error);
+        }
+    }
+
+    // --- 4. DELETE (Hapus Data) ---
+    async function deleteTask(id) {
+        if(!confirm("Are you sure?")) return;
+
+        try {
+            // TUGASMU: Kirim method DELETE ke backend
+            // URL: `${API_URL}/tasks/${id}`
+            console.log(`Deleting task ${id}`);
+
+            loadTasks();
+        } catch (error) {
+            console.error("Error deleting task:", error);
+        }
+    }
+
+    // --- Helper: Render List ke HTML ---
+    function renderList(tasks) {
+        const list = document.getElementById('taskList');
+        list.innerHTML = "";
+        
+        tasks.forEach(task => {
+            const isDone = task.status === 'done';
+            const html = `
+                <li class="${isDone ? 'completed' : ''}">
+                    <span>${task.content}</span>
+                    <div class="actions">
+                        <button class="icon-btn check-btn" onclick="updateTask(${task.id}, '${task.status}')">
+                            ${isDone ? '↩️' : '✅'}
+                        </button>
+                        <button class="icon-btn delete-btn" onclick="deleteTask(${task.id})">
+                            🗑️
+                        </button>
+                    </div>
+                </li>
+            `;
+            list.innerHTML += html;
+        });
+    }
+
+    // Load data pertama kali
+    loadTasks();
+</script>
+
 </body>
 </html>
-

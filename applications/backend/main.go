@@ -1,15 +1,28 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+		"github.com/gin-gonic/gin"
+		"cloudops/backend/controllers"
+		"cloudops/backend/models"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hello World from Go Backend!")
-}
-
 func main() {
-    http.HandleFunc("/", handler)
-    http.ListenAndServe(":5000", nil) 
+		router := gin.Default()
+
+		models.ConnectDatabase()
+
+		router.GET("/", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"message": "Hello World",
+			})
+		})
+
+		router.GET("/tasks", controllers.FindTasks)
+		router.POST("/tasks", controllers.StoreTask)
+		router.GET("/tasks/:id", controllers.FindTaskById)
+		router.PUT("/tasks/:id", controllers.UpdateTask)
+		router.DELETE("/tasks/:id", controllers.DeleteTask)
+
+		router.Run(":5000")
+
 }
