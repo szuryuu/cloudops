@@ -31,7 +31,7 @@ data "azurerm_key_vault_secret" "vault_secret" {
 
 # ACR
 resource "azurerm_container_registry" "acr" {
-  name                = "${var.project_name}-${random_string.random.result}-acr-${var.environment}"
+  name                = "${var.project_name}acr${var.environment}"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   sku                 = "Basic"
