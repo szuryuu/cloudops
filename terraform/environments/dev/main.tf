@@ -29,6 +29,32 @@ data "azurerm_key_vault_secret" "vault_secret" {
   key_vault_id = data.azurerm_key_vault.vault.id
 }
 
+# ACR
+resource "azurerm_container_registry" "acr" {
+  name                = "${var.project_name}-${random_string.random.result}-acr-${var.environment}"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  sku                 = "Basic"
+  admin_enabled       = false
+
+  tags = {
+    project_name = var.project_name
+    environment  = var.environment
+  }
+}
+
+resource "azurerm_role_assignment" "pull_acr" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = module.k8s.principal_id
+}
+
+resource "random_string" "random" {
+  length  = 3
+  special = false
+  upper   = false
+}
+
 # Module k8s
 module "k8s" {
   source                  = "../../modules/kubernetes"
@@ -42,8 +68,8 @@ module "k8s" {
   ssh_key = data.azurerm_key_vault_secret.vault_secret.value
 
   # Network profile
-  service_cidr       = var.service_cidr
-  dns_service_ip     = var.dns_service_ip
+  service_cidr   = var.service_cidr
+  dns_service_ip = var.dns_service_ip
 
   # Tags
   project_name = var.project_name
