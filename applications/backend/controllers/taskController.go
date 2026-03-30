@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"cloudops/backend/models"
 	"errors"
 	"net/http"
-	"cloudops/backend/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -11,12 +11,12 @@ import (
 
 type ValidateTaskInput struct {
 	Content string `json:"content" binding:"required"`
-	Status string `json:"status" binding:"required"` 
+	Status  string `json:"status" binding:"required"`
 }
 
 type UpdateTaskInput struct {
-    Content string `json:"content"`
-    Status  string `json:"status"`
+	Content string `json:"content"`
+	Status  string `json:"status"`
 }
 
 func FindTasks(c *gin.Context) {
@@ -26,7 +26,7 @@ func FindTasks(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "List Data Posts",
-		"data": tasks,
+		"data":    tasks,
 	})
 }
 
@@ -46,14 +46,14 @@ func StoreTask(c *gin.Context) {
 
 	task := models.Task{
 		Content: input.Content,
-		Status: input.Status,		
+		Status:  input.Status,
 	}
 	models.DB.Create(&task)
 
 	c.JSON(201, gin.H{
 		"success": true,
 		"message": "Task created successfully",
-		"data": task,
+		"data":    task,
 	})
 }
 

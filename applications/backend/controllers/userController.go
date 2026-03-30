@@ -1,27 +1,27 @@
 package controllers
 
 import (
+	"cloudops/backend/models"
 	"errors"
 	"net/http"
-	"cloudops/backend/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
 type ValidateUserInput struct {
-	Username string `json: "username" binding: "required"`
-	Password string `json: "password" binding: "required"`
-}   
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 
 func FindUsers(c *gin.Context) {
-	var users []models.User	
+	var users []models.User
 	models.DB.Find(&users)
 
 	c.JSON(200, gin.H{
-		"sucess": true,
+		"success": true,
 		"message": "List Data Users",
-		"data": users,
+		"data":    users,
 	})
 }
 
@@ -35,8 +35,8 @@ func StoreUser(c *gin.Context) {
 		if errors.As(err, &ve) {
 			out := make([]ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = ErrorMsg{fe.Field(), GetErrorMsg(fe)} 
-			} 
+				out[i] = ErrorMsg{fe.Field(), GetErrorMsg(fe)}
+			}
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": out})
 		}
 		return
@@ -49,16 +49,16 @@ func StoreUser(c *gin.Context) {
 	}
 
 	user := models.User{
-		Username: input.Username,
+		Username:     input.Username,
 		PasswordHash: hashedPassword,
-	} 
+	}
 
 	models.DB.Create(&user)
 
 	c.JSON(201, gin.H{
 		"success": true,
 		"message": "User created successfully",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -106,7 +106,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	user = models.User{
-		Username: input.Username,
+		Username:     input.Username,
 		PasswordHash: hashedPassword,
 	}
 

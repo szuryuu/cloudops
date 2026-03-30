@@ -5,9 +5,9 @@ import (
 )
 
 type ErrorMsg struct {
-	Field string `json: "field"`
-	Message string `json: "message"`
-} 
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
 
 func GetErrorMsg(fe validator.FieldError) string {
 	switch fe.Tag() {
@@ -16,5 +16,3 @@ func GetErrorMsg(fe validator.FieldError) string {
 	}
 	return "Unknown error"
 }
-
-
