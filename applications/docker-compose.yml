@@ -40,6 +40,9 @@ services:
     working_dir: /app
     ports:
       - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
 
 volumes:
   pgdata:
