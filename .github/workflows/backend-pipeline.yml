@@ -52,4 +52,4 @@ jobs:
         run: |
           kubectl set image deployment/backend \
             backend=${{ secrets.ACR_LOGIN_SERVER }}/backend:${{ github.sha }}
-          kubectl rollout status deployment/backend --timeout=120s
+          kubectl rollout status deployment/backend --timeout=300s
