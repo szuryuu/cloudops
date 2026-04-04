@@ -40,6 +40,7 @@ jobs:
 
       - name: Deploy to AKS
         run: |
-          kubectl set image deployment/frontend \
-            frontend=${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+          sed -i "s|cloudopsacrdev.azurecr.io/frontend:latest|${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}|g" \
+            kubernetes/base/frontend/deployment.yml
+          kubectl apply -f kubernetes/base/frontend/deployment.yml
           kubectl rollout status deployment/frontend --timeout=300s
