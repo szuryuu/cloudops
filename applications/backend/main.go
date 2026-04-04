@@ -40,5 +40,3 @@ func main() {
 
 	router.Run(":5000")
 }
-
-// trigger pipeline on github actions
