@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hasicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform-version: "1.9.0"
 
