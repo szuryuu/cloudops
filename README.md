@@ -1,8 +1,8 @@
 # CloudOps Platform
 
-[![Backend CI/CD](https://github.com/[USERNAME]/cloudops/actions/workflows/backend-pipeline.yml/badge.svg)](https://github.com/[USERNAME]/cloudops/actions/workflows/backend-pipeline.yml)
-[![Frontend CI/CD](https://github.com/[USERNAME]/cloudops/actions/workflows/frontend-pipeline.yml/badge.svg)](https://github.com/[USERNAME]/cloudops/actions/workflows/frontend-pipeline.yml)
-[![Infrastructure](https://github.com/[USERNAME]/cloudops/actions/workflows/infrastructure-pipeline.yml/badge.svg)](https://github.com/[USERNAME]/cloudops/actions/workflows/infrastructure-pipeline.yml)
+[![Backend CI/CD](https://github.com/szuryuu/cloudops/actions/workflows/backend-pipeline.yml/badge.svg)](https://github.com/[USERNAME]/cloudops/actions/workflows/backend-pipeline.yml)
+[![Frontend CI/CD](https://github.com/szuryuu/cloudops/actions/workflows/frontend-pipeline.yml/badge.svg)](https://github.com/[USERNAME]/cloudops/actions/workflows/frontend-pipeline.yml)
+[![Infrastructure](https://github.com/szuryuu/cloudops/actions/workflows/infrastructure-pipeline.yml/badge.svg)](https://github.com/[USERNAME]/cloudops/actions/workflows/infrastructure-pipeline.yml)
 
 A production-grade DevOps automation platform deployed on Azure Kubernetes Service (AKS), demonstrating end-to-end infrastructure provisioning, CI/CD automation, and observability.
 
