@@ -1,597 +1,356 @@
-# CloudOps Automation Platform - Complete Project Specification
+# CloudOps Platform — Project Specification
 
-## 🎯 Project Goals
+## Project Summary
 
-Build a production-grade DevOps automation platform that demonstrates:
-- Infrastructure as Code (IaC) mastery
-- CI/CD pipeline expertise
-- Container orchestration
-- Monitoring and observability
-- Security best practices
-- Cost optimization
+A DevOps automation platform deployed on Azure Kubernetes Service demonstrating
+end-to-end infrastructure provisioning, CI/CD automation, and observability.
+Built as a portfolio project with a 17-day speedrun timeline.
 
-## 📋 Project Requirements
-
-### Core Features
-
-#### 1. Multi-Environment Infrastructure (DEV/STAGING/PROD)
-- Separate isolated environments
-- Environment-specific configurations
-- Blue-green or canary deployment capability
-- Resource tagging and organization
-
-#### 2. Three Microservices Application
-- **Frontend**: Simple React/Vue dashboard
-- **Backend API**: REST API (choose: Python Flask/FastAPI, Node.js Express, or Go)
-- **Database Service**: PostgreSQL or MongoDB with backup automation
-
-#### 3. Infrastructure as Code
-- All infrastructure defined in Terraform
-- Modular design (reusable modules)
-- Remote state management
-- Drift detection capability
-
-#### 4. CI/CD Pipeline
-- Automated testing (unit tests, integration tests)
-- Security scanning (container images, secrets)
-- Automated deployment to all environments
-- Rollback capability
-- Approval gates for production
-
-#### 5. Container Orchestration
-- Docker containerization for all services
-- Kubernetes deployment (can use kind/k3s locally, or cloud AKS/EKS)
-- Helm charts for application packaging
-- Auto-scaling configuration
-
-#### 6. Monitoring & Observability
-- Metrics collection (Prometheus)
-- Visualization dashboards (Grafana)
-- Logging aggregation (Loki or ELK stack)
-- Alerting rules (critical, warning levels)
-- Distributed tracing (Jaeger - bonus)
-
-#### 7. Security Implementation
-- Secrets management (Azure Key Vault, AWS Secrets Manager, or HashiCorp Vault)
-- Network security (security groups, network policies)
-- RBAC (Role-Based Access Control)
-- TLS/SSL for all services
-- Container image scanning in pipeline
-
-#### 8. Backup & Disaster Recovery
-- Database automated backups
-- Infrastructure state backups
-- Recovery testing documentation
-
-#### 9. Cost Optimization
-- Resource tagging for cost tracking
-- Auto-shutdown for dev/staging environments (scheduled)
-- Resource sizing optimization
-
-#### 10. Documentation
-- Architecture diagrams (draw.io or Mermaid)
-- Runbooks (how to deploy, rollback, troubleshoot)
-- API documentation
-- Infrastructure documentation
+This document reflects what was actually built, not an aspirational roadmap.
+Known limitations are documented explicitly in their own section.
 
 ---
 
-## 🏗️ Technical Architecture
+## What This Project Demonstrates
 
-### Infrastructure Layer
-```
-Cloud Provider (Choose one: Azure/AWS/GCP)
-├── Virtual Networks (VPC)
-│   ├── Public Subnet (Load Balancer)
-│   ├── Private Subnet (Applications)
-│   └── Database Subnet (Isolated)
-├── Kubernetes Cluster
-│   ├── Control Plane
-│   └── Worker Nodes (auto-scaling)
-├── Container Registry
-├── Storage (for backups, logs)
-└── Key Vault (secrets management)
-```
-
-### Application Layer
-```
-Frontend (React/Vue)
-├── Nginx server
-├── Static assets
-└── API client
-
-Backend API (Python/Node/Go)
-├── Business logic
-├── Authentication
-└── Database connections
-
-Database (PostgreSQL/MongoDB)
-├── Primary instance
-├── Backup automation
-└── Connection pooling
-```
-
-### DevOps Pipeline
-```
-Git Push → GitHub/GitLab
-├── Lint & Code Quality
-├── Security Scan
-├── Unit Tests
-├── Build Docker Image
-├── Push to Registry
-├── Deploy to DEV
-├── Integration Tests
-├── Deploy to STAGING (manual approval)
-└── Deploy to PROD (manual approval + health checks)
-```
+- Infrastructure as Code with Terraform (modular, remote state)
+- Kubernetes deployment on AKS with health probes and service discovery
+- CI/CD pipelines with GitHub Actions (path-triggered, image-tagged deploys)
+- Container registry integration (ACR with managed identity)
+- Monitoring stack deployment via Helm (Prometheus, Grafana, AlertManager)
+- Operational runbooks based on real issues encountered during development
+- Full lifecycle automation scripts (provision, deploy, rollback, backup, destroy)
 
 ---
 
-## 🛠️ Technology Stack
+## Tech Stack
 
-### Required
-- **IaC**: Terraform
-- **Containerization**: Docker
-- **Orchestration**: Kubernetes (kind for local, or cloud AKS/EKS)
-- **CI/CD**: GitHub Actions or GitLab CI
-- **Monitoring**: Prometheus + Grafana
-- **Logging**: Loki or ELK
-- **Cloud**: Azure (since you have access) or AWS free tier
-
-### Application Stack (Choose)
-- **Frontend**: React or Vue.js
-- **Backend**: Python (Flask/FastAPI), Node.js (Express), or Go (Gin)
-- **Database**: PostgreSQL or MongoDB
-
-### Supporting Tools
-- **Helm**: Kubernetes package manager
-- **Kubectl**: Kubernetes CLI
-- **Terraform**: Infrastructure provisioning
-- **Docker Compose**: Local development
-- **Make**: Task automation
+| Layer          | Technology               | Version               |
+| -------------- | ------------------------ | --------------------- |
+| Cloud          | Microsoft Azure          |                       |
+| Infrastructure | Terraform                | 1.9                   |
+| Orchestration  | Kubernetes (AKS)         | 1.33                  |
+| CI/CD          | GitHub Actions           |                       |
+| Backend        | Go + Gin                 | 1.25                  |
+| Database       | PostgreSQL               | 18                    |
+| Frontend       | HTML + Nginx             | Alpine                |
+| Monitoring     | Prometheus + Grafana     | kube-prometheus-stack |
+| Registry       | Azure Container Registry | Basic                 |
 
 ---
 
-## 📁 Project Structure
+## Architecture
+
+### Request Flow
+
+| Step | Layer         | Component             | Port | Notes         |
+| ---- | ------------- | --------------------- | ---- | ------------- |
+| 1    | Internet      |                       |      | Entry point   |
+| 2    | Load Balancer | Azure Load Balancer   |      | Auto from K8s |
+| 3    | Service       | frontend-service      | 80   | Public access |
+| 4    | Pod           | Frontend (Nginx)      | 80   | Proxy /api/   |
+| 5    | Service       | backend-service       | 80   | Internal only |
+| 6    | Pod           | Backend (Go/Gin)      | 5000 | REST API      |
+| 7    | Service       | db-service            | 5432 | Internal only |
+| 8    | Pod           | Database (PostgreSQL) | 5432 | Storage       |
+
+### Infrastructure
+
+| Resource        | Value                 |
+| --------------- | --------------------- |
+| VNet CIDR       | 10.1.0.0/16           |
+| Subnet CIDR     | 10.1.0.0/22           |
+| Service CIDR    | 10.2.0.0/16           |
+| AKS Node        | Standard_B2s (1 node) |
+| ACR Tier        | Basic                 |
+| Terraform State | Azure Blob Storage    |
+
+### Key Design Decisions
+
+**Nginx as reverse proxy**
+The frontend does not call the backend via a public IP. All /api/\* requests
+are proxied by Nginx to the Kubernetes internal service name backend-service.
+Two nginx configs exist: nginx.conf for docker-compose (uses backend:5000)
+and nginx.k8s.conf for Kubernetes (uses backend-service). The Dockerfile
+uses nginx.k8s.conf for the production image.
+
+**ClusterIP for backend and database**
+Only the frontend requires a LoadBalancer. Backend and database use ClusterIP
+and are not reachable from outside the cluster. This reduces attack surface
+and Azure costs.
+
+**SystemAssigned identity for AKS**
+AKS uses a SystemAssigned managed identity to pull images from ACR.
+No credentials are stored anywhere. The identity is granted AcrPull
+via Terraform azurerm_role_assignment.
+
+Known issue: when AKS is destroyed and recreated, it gets a new principal ID.
+The old role assignment becomes stale. Fix requires running
+az aks update --attach-acr cloudopsacrdev after every infra recreate.
+
+---
+
+## Project Structure
 
 ```
 cloudops-platform/
-├── terraform/
-│   ├── modules/
-│   │   ├── networking/
-│   │   ├── kubernetes/
-│   │   ├── database/
-│   │   └── monitoring/
-│   ├── environments/
-│   │   ├── dev/
-│   │   ├── staging/
-│   │   └── prod/
-│   └── backend.tf (remote state)
-│
-├── kubernetes/
-│   ├── base/
-│   │   ├── frontend/
-│   │   ├── backend/
-│   │   └── database/
-│   ├── overlays/
-│   │   ├── dev/
-│   │   ├── staging/
-│   │   └── prod/
-│   └── monitoring/
-│
+├── .github/workflows/
+│   ├── backend-pipeline.yml
+│   ├── frontend-pipeline.yml
+│   └── infrastructure-pipeline.yml
 ├── applications/
-│   ├── frontend/
-│   │   ├── src/
-│   │   ├── Dockerfile
-│   │   └── package.json
-│   ├── backend/
-│   │   ├── src/
-│   │   ├── Dockerfile
-│   │   ├── requirements.txt (or package.json)
-│   │   └── tests/
-│   └── database/
-│       └── migrations/
-│
-├── .github/
-│   └── workflows/
-│       ├── frontend-pipeline.yml
-│       ├── backend-pipeline.yml
-│       └── infrastructure-pipeline.yml
-│
+│   ├── backend/             # Go/Gin REST API
+│   ├── frontend/            # HTML + Nginx
+│   └── docker-compose.yml
+├── kubernetes/base/
+│   ├── backend/deployment.yml
+│   ├── frontend/deployment.yml
+│   └── database/deployment.yml
+├── terraform/
+│   ├── environments/dev/
+│   └── modules/
+│       ├── kubernetes/
+│       └── networking/
 ├── monitoring/
-│   ├── prometheus/
-│   ├── grafana/
-│   │   └── dashboards/
-│   └── alerting/
-│       └── rules.yml
-│
+│   └── alerting/rules.yml
 ├── scripts/
+│   ├── apply.sh
+│   ├── destroy.sh
 │   ├── deploy.sh
 │   ├── rollback.sh
 │   └── backup.sh
-│
 ├── docs/
 │   ├── architecture.md
-│   ├── runbooks/
-│   │   ├── deployment.md
-│   │   ├── rollback.md
-│   │   └── troubleshooting.md
-│   └── diagrams/
-│
+│   └── runbooks/
+│       ├── apply.md
+│       ├── destroy.md
+│       ├── deployment.md
+│       ├── rollback.md
+│       └── troubleshooting.md
 ├── Makefile
 └── README.md
 ```
 
 ---
 
-## 🚀 Implementation Phases
+## CI/CD Pipelines
 
-### Phase 1: Foundation (Week 1-2)
-**Goal**: Basic infrastructure and local development
+Every push to main triggers the relevant pipeline based on file path.
 
-**Tasks**:
-1. Setup project structure
-2. Create basic Terraform modules (networking, compute)
-3. Deploy infrastructure to DEV environment
-4. Setup local development environment with Docker Compose
-5. Create simple "Hello World" for all three services
+| Changed Path               | Pipeline       | Steps                                              |
+| -------------------------- | -------------- | -------------------------------------------------- |
+| applications/backend/\*\*  | Backend CI/CD  | go build → docker build → push ACR → kubectl apply |
+| applications/frontend/\*\* | Frontend CI/CD | docker build → push ACR → kubectl apply            |
+| terraform/\*\*             | Infrastructure | fmt check → validate → plan (no auto apply)        |
 
-**Deliverables**:
-- Working Terraform that provisions basic cloud resources
-- Docker Compose file that runs all services locally
-- Basic README with setup instructions
-
-**Skills Developed**: IaC basics, Docker fundamentals, project organization
+All pipelines use kubectl apply -f instead of kubectl set image.
+This ensures deployments succeed even after infra recreate when
+the deployment resource does not yet exist in the cluster.
 
 ---
 
-### Phase 2: Application Development (Week 3-4)
-**Goal**: Build functional microservices
+## API Reference
 
-**Tasks**:
-1. **Frontend**: Dashboard showing system metrics
-   - Service health status
-   - Basic CRUD operations
-   - Authentication UI
-
-2. **Backend**: REST API with endpoints
-   - Health check endpoint
-   - CRUD operations
-   - Authentication/authorization
-   - Database connections
-
-3. **Database**: Schema design and migrations
-   - User table
-   - Application data tables
-   - Migration scripts
-
-**Deliverables**:
-- Working application (local)
-- API documentation (Swagger/OpenAPI)
-- Database schema diagram
-
-**Skills Developed**: Full-stack development, API design, database modeling
+| Method | Endpoint   | Description    |
+| ------ | ---------- | -------------- |
+| GET    | /          | Health check   |
+| GET    | /tasks     | List all tasks |
+| POST   | /tasks     | Create a task  |
+| GET    | /tasks/:id | Get task by ID |
+| PUT    | /tasks/:id | Update task    |
+| DELETE | /tasks/:id | Delete task    |
+| GET    | /users     | List all users |
+| POST   | /users     | Create a user  |
+| GET    | /users/:id | Get user by ID |
+| PUT    | /users/:id | Update user    |
+| DELETE | /users/:id | Delete user    |
 
 ---
 
-### Phase 3: Containerization & Kubernetes (Week 5-6)
-**Goal**: Deploy to Kubernetes
+## Monitoring Stack
 
-**Tasks**:
-1. Write production-ready Dockerfiles (multi-stage builds)
-2. Create Kubernetes manifests (Deployments, Services, Ingress)
-3. Setup Helm charts
-4. Configure auto-scaling (HPA)
-5. Implement health checks and readiness probes
-6. Deploy to local Kubernetes (kind/k3s)
+Deployed via Helm (kube-prometheus-stack).
 
-**Deliverables**:
-- Optimized Docker images (< 100MB each)
-- Working Kubernetes deployment (local)
-- Helm charts
-- Scaling demonstration
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace \
+  --set grafana.adminPassword=admin123
+```
 
-**Skills Developed**: Containerization, Kubernetes, Helm, scaling strategies
+Components deployed:
 
----
+- Prometheus — scrapes metrics from pods and nodes
+- Grafana — visualizes metrics via built-in Kubernetes dashboards
+- AlertManager — routes alerts based on rules in monitoring/alerting/rules.yml
+- Node Exporter — node-level metrics (CPU, memory, disk)
+- kube-state-metrics — Kubernetes object state as metrics
 
-### Phase 4: CI/CD Pipeline (Week 7-8)
-**Goal**: Full automation
+Access Grafana:
 
-**Tasks**:
-1. Setup GitHub Actions workflows
-2. Implement stages:
-   - Lint and code quality (ESLint, Pylint, etc.)
-   - Security scanning (Trivy for containers)
-   - Unit tests
-   - Build and push Docker images
-   - Deploy to DEV (automatic)
-   - Deploy to STAGING (manual approval)
-   - Deploy to PROD (manual approval + smoke tests)
-3. Add rollback capability
-4. Implement deployment notifications (Slack/Discord webhook)
+```bash
+kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
+# http://localhost:3000 — admin / admin123
+```
 
-**Deliverables**:
-- Working CI/CD pipelines for all services
-- Deployment history
-- Automated testing coverage > 60%
-
-**Skills Developed**: CI/CD, automated testing, deployment strategies
+Alert rule groups implemented: pod-alerts, resource-alerts, service-alerts.
 
 ---
 
-### Phase 5: Monitoring & Observability (Week 9-10)
-**Goal**: Complete observability
+## Operational Scripts
 
-**Tasks**:
-1. Deploy Prometheus + Grafana
-2. Create custom metrics in application
-3. Build Grafana dashboards:
-   - Infrastructure metrics (CPU, memory, disk)
-   - Application metrics (request rate, latency, errors)
-   - Business metrics (users, transactions, etc.)
-4. Setup alerting rules
-5. Implement logging with Loki
-6. Create log aggregation queries
+| Script      | Usage                            | Description                                |
+| ----------- | -------------------------------- | ------------------------------------------ |
+| apply.sh    | bash scripts/apply.sh            | Full provision from scratch                |
+| destroy.sh  | bash scripts/destroy.sh          | Safe teardown in correct order             |
+| deploy.sh   | bash scripts/deploy.sh           | Post-infra deploy (kubeconfig + ACR + DB)  |
+| rollback.sh | bash scripts/rollback.sh backend | Rollback a deployment to previous revision |
+| backup.sh   | bash scripts/backup.sh           | pg_dump from AKS pod to ./backups/         |
 
-**Deliverables**:
-- 3-5 Grafana dashboards
-- Alert rules for critical scenarios
-- Log queries for troubleshooting
-
-**Skills Developed**: Monitoring, observability, alerting, log analysis
+Makefile targets: up, down, deploy, rollback, backup, monitoring-up, tf-plan, tf-apply, tf-destroy.
 
 ---
 
-### Phase 6: Security Hardening (Week 11-12)
-**Goal**: Production-ready security
+## Known Limitations
 
-**Tasks**:
-1. Implement secrets management (Key Vault/Secrets Manager)
-2. Remove all hardcoded secrets from code
-3. Configure network security groups
-4. Implement Kubernetes Network Policies
-5. Setup RBAC for Kubernetes
-6. Enable TLS for all services
-7. Container image scanning in pipeline
-8. Security audit documentation
+These are acknowledged gaps, not overlooked items.
 
-**Deliverables**:
-- Zero secrets in code
-- Network isolation between environments
-- Security audit report
-
-**Skills Developed**: Security best practices, secrets management, network security
+| Area               | Limitation                                                        |
+| ------------------ | ----------------------------------------------------------------- |
+| Testing            | No unit or integration tests in the application codebase          |
+| Security scanning  | No Trivy or container image scanning in CI/CD pipelines           |
+| Secrets management | Database credentials hardcoded in Kubernetes manifests            |
+| Log aggregation    | No Loki or ELK — metrics only, no centralized log storage         |
+| Helm               | Raw Kubernetes manifests only, no Helm chart packaging            |
+| Multi-environment  | Single DEV environment only — no staging or prod                  |
+| Auto-scaling       | No HPA configured — single replica per deployment                 |
+| TLS                | No HTTPS — HTTP only on the frontend LoadBalancer                 |
+| Identity issue     | ACR-AKS role assignment breaks on every terraform destroy + apply |
 
 ---
 
-### Phase 7: Multi-Environment & DR (Week 13-14)
-**Goal**: Production-grade reliability
+## Real Issues Encountered and Resolved
 
-**Tasks**:
-1. Replicate infrastructure for STAGING and PROD
-2. Implement blue-green or canary deployment
-3. Setup automated database backups
-4. Create disaster recovery runbook
-5. Test recovery procedures
-6. Implement infrastructure drift detection
+This section documents actual problems hit during development.
+Each entry has a root cause and a fix that was verified to work.
 
-**Deliverables**:
-- 3 environments (DEV/STAGING/PROD)
-- Backup and recovery procedures tested
-- DR runbook
+1. ImagePullBackOff after terraform destroy + apply
+   Root cause: AKS gets new principal ID on recreate. Old role assignment becomes stale.
+   Fix: az aks update --attach-acr cloudopsacrdev after every infra recreate.
 
-**Skills Developed**: Multi-environment management, disaster recovery, reliability
+2. Pipeline timeout during rollout
+   Root cause: No readiness probe. K8s did not know when pod was ready.
+   Fix: Added readinessProbe and livenessProbe to backend deployment manifest.
 
----
+3. Pipeline fails with "deployment not found"
+   Root cause: kubectl set image requires deployment to already exist.
+   Fix: Switched to kubectl apply -f which creates or updates.
 
-### Phase 8: Documentation & Polish (Week 15-16)
-**Goal**: Portfolio-ready
+4. Nginx "host not found" for backend-service
+   Root cause: backend-service only resolves inside AKS cluster, not in docker-compose.
+   Fix: Separate nginx configs — nginx.conf for docker-compose, nginx.k8s.conf for K8s.
 
-**Tasks**:
-1. Create architecture diagrams (use draw.io or Mermaid)
-2. Write comprehensive README
-3. Create runbooks:
-   - How to deploy
-   - How to rollback
-   - Common troubleshooting
-4. Record demo video (5-10 minutes)
-5. Write blog post about project
-6. Clean up code, remove dead code
-7. Final testing across all environments
+5. CrashLoopBackOff — backend cannot connect to database
+   Root cause: Database pod not deployed, or not yet ready when backend started.
+   Fix: Deploy database first, wait for readiness, then trigger backend pipeline.
 
-**Deliverables**:
-- Professional README with badges
-- Architecture diagrams
-- Runbooks
-- Demo video
-- Blog post
-
-**Skills Developed**: Technical writing, documentation, communication
+6. Frontend shows CONNECTION_LOST in browser
+   Root cause: backend pod down, backend-service missing, or nginx misconfiguration.
+   Fix: Diagnose in order — check pods, check service, check nginx config.
 
 ---
 
-## 🎓 Learning Outcomes
+## Quick Start (Local Development)
 
-By completing this project, you will have demonstrated:
+Prerequisites: Docker, Docker Compose
 
-### Technical Skills
-- ✅ Infrastructure as Code (Terraform)
-- ✅ Container technologies (Docker, Kubernetes)
-- ✅ CI/CD pipelines (GitHub Actions)
-- ✅ Monitoring and observability (Prometheus, Grafana)
-- ✅ Security best practices
-- ✅ Cloud platforms (Azure/AWS)
-- ✅ Full-stack development
+```bash
+git clone https://github.com/szuryuu/cloudops.git
+cd cloudops
 
-### Soft Skills
-- ✅ Project planning and execution
-- ✅ Technical documentation
-- ✅ Problem-solving (you'll encounter many issues)
-- ✅ Systems thinking (understanding how pieces fit together)
+cd applications
+docker-compose up --build
 
----
+# Frontend: http://localhost
+# Backend:  http://localhost/api/tasks
+```
 
-## 💡 Success Criteria
+## Infrastructure Setup
 
-**Minimum Viable Product (MVP)**:
-- [ ] All three services running in Kubernetes
-- [ ] Basic CI/CD pipeline (build, test, deploy)
-- [ ] Infrastructure provisioned via Terraform
-- [ ] Basic monitoring with Prometheus + Grafana
-- [ ] Clear documentation
+Prerequisites: Terraform 1.9+, Azure CLI, kubectl
 
-**Portfolio-Ready**:
-- [ ] Multi-environment setup (DEV/STAGING/PROD)
-- [ ] Complete CI/CD with security scanning
-- [ ] Comprehensive monitoring dashboards
-- [ ] Security hardening implemented
-- [ ] Professional documentation with diagrams
-- [ ] Demo video or blog post
+```bash
+az login
+bash scripts/apply.sh
+```
 
-**Interview-Ready**:
-- [ ] Can explain every architectural decision
-- [ ] Can demonstrate live deployment
-- [ ] Can troubleshoot issues in real-time
-- [ ] Understands trade-offs and alternatives
-- [ ] Can discuss improvements and next steps
+Or step by step:
+
+```bash
+cd terraform/environments/dev
+cp terraform.tfvars.example terraform.tfvars
+# Fill in: subscription_id, resource_group_name, key_vault_name
+terraform init
+terraform apply
+
+cd ../../..
+bash scripts/deploy.sh
+```
 
 ---
 
-## 🚧 Common Challenges & How to Overcome
+## Runbooks
 
-### Challenge 1: "This is too complex, I don't know where to start"
-**Solution**: Follow phases strictly. Don't skip ahead. Week 1-2 is just Terraform + Docker Compose.
-
-### Challenge 2: "I'm stuck on [specific technical issue]"
-**Solution**: Use AI prompt (provided separately). Research official docs. Ask in communities (DevOps Indonesia, r/devops).
-
-### Challenge 3: "I don't have time to finish in 16 weeks"
-**Solution**: Adjust timeline. MVP (Phases 1-4) = 8 weeks minimum. Rest is polish.
-
-### Challenge 4: "Cloud costs are expensive"
-**Solution**: Use Azure free tier, or AWS free tier. Destroy DEV/STAGING when not using (Terraform destroy). Only keep PROD minimal.
-
-### Challenge 5: "My application is too simple/boring"
-**Solution**: The application doesn't matter. DevOps infrastructure around it is what's being evaluated.
+- [Apply — full provision from scratch](docs/runbooks/apply.md)
+- [Destroy — safe teardown](docs/runbooks/destroy.md)
+- [Deployment — normal and manual deploy](docs/runbooks/deployment.md)
+- [Rollback](docs/runbooks/rollback.md)
+- [Troubleshooting — real issues and fixes](docs/runbooks/troubleshooting.md)
 
 ---
 
-## 📊 Project Tracking
+## GitHub Secrets Required
 
-Use GitHub Projects or simple spreadsheet:
-
-| Phase | Task | Status | Deadline | Notes |
-|-------|------|--------|----------|-------|
-| 1 | Terraform setup | Not Started | Week 2 | |
-| 1 | Docker Compose | Not Started | Week 2 | |
-| ... | ... | ... | ... | ... |
-
-Update weekly. This demonstrates project management skills.
-
----
-
-## 🎯 Interview Talking Points
-
-When showcasing this project in interviews:
-
-**Opening**: "I built a production-grade DevOps platform that automates the full lifecycle of deploying microservices, from infrastructure provisioning to monitoring and disaster recovery."
-
-**Key points to emphasize**:
-1. **Scale**: "Handles multi-environment deployments with environment-specific configurations"
-2. **Automation**: "CI/CD pipeline with automated testing, security scanning, and deployment"
-3. **Reliability**: "Implemented monitoring, alerting, and disaster recovery procedures"
-4. **Security**: "Zero secrets in code, network isolation, container scanning"
-5. **Learning**: "This project taught me [specific challenging thing you overcame]"
-
-**Prepare to answer**:
-- "Why did you choose [technology X] over [technology Y]?"
-- "How does your CI/CD pipeline handle rollbacks?"
-- "What would you do differently if you rebuilt this?"
-- "How do you ensure zero-downtime deployments?"
-- "Walk me through what happens when you push code to main branch"
+| Secret                | Description                     |
+| --------------------- | ------------------------------- |
+| AZURE_CLIENT_ID       | Service principal client ID     |
+| AZURE_CLIENT_SECRET   | Service principal client secret |
+| AZURE_SUBSCRIPTION_ID | Azure subscription ID           |
+| AZURE_TENANT_ID       | Azure tenant ID                 |
+| ACR_LOGIN_SERVER      | e.g. cloudopsacrdev.azurecr.io  |
+| RESOURCE_GROUP        | Azure resource group name       |
+| AKS_CLUSTER_NAME      | AKS cluster name                |
+| KEY_VAULT_NAME        | Azure Key Vault name            |
 
 ---
 
-## 📚 Resources
+## Interview Talking Points
 
-### Official Documentation (PRIMARY SOURCES)
-- Terraform: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs
-- Kubernetes: https://kubernetes.io/docs/home/
-- Docker: https://docs.docker.com/
-- GitHub Actions: https://docs.github.com/en/actions
-- Prometheus: https://prometheus.io/docs/
-- Grafana: https://grafana.com/docs/
+Opening: "I built a production-grade DevOps platform on AKS that automates the full
+infrastructure lifecycle — from provisioning with Terraform to deploying via GitHub Actions
+to monitoring with Prometheus and Grafana."
 
-### Learning Resources
-- "The Phoenix Project" (book - DevOps culture)
-- "Kubernetes Patterns" (book - K8s best practices)
-- DevOps Toolkit YouTube channel (Viktor Farcic)
-- TechWorld with Nana (YouTube - DevOps tutorials)
+Questions to prepare for:
 
-### Communities
-- DevOps Indonesia (Telegram/Discord)
-- r/devops (Reddit)
-- Cloud Native Computing Foundation (CNCF) Slack
+- Walk me through what happens when you push code to main
+- Why did you use SystemAssigned identity instead of UserAssigned?
+- How does the nginx reverse proxy work in your setup?
+- Why does kubectl apply work but kubectl set image fails after recreate?
+- What would you do differently if you rebuilt this?
+- How do you ensure the database is ready before the backend starts?
+- What does the destroy order matter?
+- What are the security weaknesses in your current setup?
 
 ---
 
-## ✨ Bonus Features (If Time Permits)
+## Planned Improvements
 
-1. **GitOps**: Implement ArgoCD or Flux for Kubernetes deployments
-2. **Service Mesh**: Add Istio or Linkerd for advanced traffic management
-3. **Chaos Engineering**: Use Chaos Mesh to test system resilience
-4. **Cost Dashboard**: Custom Grafana dashboard showing cloud costs
-5. **Auto-remediation**: Scripts that automatically fix common issues
-6. **Multi-cloud**: Deploy to both Azure and AWS (Terraform abstraction)
+If this project continues beyond MVP:
 
----
-
-## 🎬 Final Deliverable: Demo Video Script
-
-**Duration**: 5-10 minutes
-
-**Structure**:
-1. **Introduction** (30 seconds)
-   - Your name, project name
-   - Brief overview of what it does
-
-2. **Architecture Walkthrough** (2 minutes)
-   - Show diagram
-   - Explain components and their interactions
-
-3. **Live Demo** (5 minutes)
-   - Show code push triggering CI/CD
-   - Watch pipeline execute
-   - Show deployment to environments
-   - Demonstrate monitoring dashboards
-   - Show a rollback
-
-4. **Challenges & Learnings** (1 minute)
-   - Biggest challenge you faced
-   - Most important thing you learned
-
-5. **Closing** (30 seconds)
-   - GitHub link
-   - Contact info
-
-**Upload to**: YouTube, LinkedIn, portfolio website
-
----
-
-## 🏆 Success Stories
-
-This type of project has helped SMK graduates land:
-- Junior DevOps: 6-10 juta/month
-- Remote international: $1500-2500/month
-- Contract roles: 8-15 juta/month
-
-**Why it works**:
-- Demonstrates real-world skills
-- Shows you can execute long-term projects
-- Proves you understand systems, not just tools
-- Gives concrete examples for every interview question
-
----
-
-**NOW GO BUILD.**
+- Add Trivy container scanning step to CI/CD pipelines
+- Move database credentials to Azure Key Vault and mount as K8s secrets
+- Add HPA for backend deployment based on CPU metrics
+- Add Loki for log aggregation
+- Write unit tests for Go backend controllers
+- Add HTTPS via cert-manager and Let's Encrypt
+- Fix the ACR identity issue with UserAssigned identity instead of SystemAssigned
